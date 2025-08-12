@@ -1,4 +1,5 @@
 const BASE = 'https://hurawatch.cc';
+const HOME_URL = `${BASE}/home`;
 
 async function fetchHTML(url) {
   const res = await fetch(url, {
@@ -12,12 +13,18 @@ async function fetchHTML(url) {
   return await res.text();
 }
 
+// Instead of search, fetch homepage movies/shows
 async function search(query) {
-  const SEARCH_URL = `${BASE}/search/${encodeURIComponent(query)}`;
-  const html = await fetchHTML(SEARCH_URL);
+  // Ignore query and just return homepage movies for now
+  return fetchHomepageItems();
+}
+
+async function fetchHomepageItems() {
+  const html = await fetchHTML(HOME_URL);
   const doc = new DOMParser().parseFromString(html, 'text/html');
   const results = [];
 
+  // The homepage movie list container
   doc.querySelectorAll('.film-poster > a').forEach(link => {
     const img = link.querySelector('img');
     if (!img) return;
