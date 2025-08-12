@@ -1,12 +1,10 @@
 const BASE = 'https://hurawatch.cc';
-const HOME_URL = `${BASE}/home`;
-const SEARCH_URL = (q) => `${BASE}/search/${encodeURIComponent(q)}`;
 
 async function fetchHTML(url) {
   const res = await fetch(url, {
     headers: {
-      'User-Agent': 'Mozilla/5.0 (compatible; SoraModule/1.0)', // Spoof UA to avoid blocking
-      'Accept-Language': 'en-US,en;q=0.9'
+      'User-Agent': 'Mozilla/5.0 (compatible; SoraModule/1.0)',
+      'Accept-Language': 'en-US,en;q=0.9',
     },
     redirect: 'follow'
   });
@@ -15,36 +13,19 @@ async function fetchHTML(url) {
 }
 
 async function search(query) {
-  // Try search page first
-  const html = await fetchHTML(SEARCH_URL(query));
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  const results = [];
-  
-  // Adjusted selector for current site
-  doc.querySelectorAll('.film-poster > a').forEach(linkElem => {
-    const imgElem = linkElem.querySelector('img');
-    if (!imgElem) return;
-    const title = imgElem.getAttribute('alt') || linkElem.getAttribute('title') || 'No Title';
-    const cover = imgElem.getAttribute('data-src') || imgElem.getAttribute('src');
-    const url = BASE + linkElem.getAttribute('href');
-    results.push({ title, cover, url });
-  });
-
-  return results;
-}
-
-async function fetchHomepageItems() {
-  const html = await fetchHTML(HOME_URL);
+  const SEARCH_URL = `${BASE}/search/${encodeURIComponent(query)}`;
+  const html = await fetchHTML(SEARCH_URL);
   const doc = new DOMParser().parseFromString(html, 'text/html');
   const results = [];
 
-  // Example: grab movies from homepage's movie list container
-  doc.querySelectorAll('.film-list .film-poster > a').forEach(linkElem => {
-    const imgElem = linkElem.querySelector('img');
-    if (!imgElem) return;
-    const title = imgElem.getAttribute('alt') || linkElem.getAttribute('title') || 'No Title';
-    const cover = imgElem.getAttribute('data-src') || imgElem.getAttribute('src');
-    const url = BASE + linkElem.getAttribute('href');
+  doc.querySelectorAll('.film-poster > a').forEach(link => {
+    const img = link.querySelector('img');
+    if (!img) return;
+
+    const title = img.getAttribute('alt') || link.getAttribute('title') || 'No Title';
+    const cover = img.getAttribute('data-src') || img.getAttribute('src') || '';
+    const url = BASE + link.getAttribute('href');
+
     results.push({ title, cover, url });
   });
 
@@ -53,5 +34,28 @@ async function fetchHomepageItems() {
 
 async function resolve(link) {
   const html = await fetchHTML(link);
-  const
-hura
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+
+  const iframe = doc.querySelector('iframe');
+  if (!iframe) return [];
+
+  const embedUrl = iframe.src.startsWith('http') ? iframe.src : BASE + iframe.src;
+  const embedHtml = await fetchHTML(embedUrl);
+  const embedDoc = new DOMParser().parseFromString(embedHtml, 'text/html');
+
+  const sources = [];
+  embedDoc.querySelectorAll('source').forEach(src => {
+    if (src.src) {
+      sources.push({
+        url: src.src,
+        quality: src.getAttribute('res') || 'auto',
+        type: src.getAttribute('type') || 'video'
+      });
+    }
+  });
+
+  return sources;
+}
+
+exports.search = search;
+exports.resolve = resolve;
