@@ -1,0 +1,20 @@
+{
+  "sourceName": "Hurawatch",
+  "iconUrl": "https://hurawatch.cc/favicon.ico",
+  "author": {
+    "name": "YourName",
+    "icon": "https://your-avatar-url",
+    "url": "https://your-github-or-profile"
+  },
+  "version": "1.0.0",
+  "language": "English",
+  "streamType": "HLS",
+  "quality": "variable",
+  "baseUrl": "https://hurawatch.cc",
+  "searchBaseUrl": "https://hurawatch.cc/search/%s",
+  "scriptUrl": "https://raw.githubusercontent.com/learnerspermition/sora-movie-module-hurawatch/main/hurawatch.js",
+  "type": "movies/shows",
+  "downloadSupport": false,
+  "asyncJS": true,
+  "softsub": false
+}
